@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário do Fael & Evelyn</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background-color: rgba(10, 10, 10, 0.9);
+            border-bottom: 1px solid #27272a;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(8px);
+        }
+        h1 {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #ec4899;
+            letter-spacing: 0.05em;
+        }
+        .subtitle-top {
+            font-size: 0.75rem;
+            color: #a1a1aa;
+        }
+        #counter-box {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            text-align: right;
+            cursor: pointer;
+        }
+        #counter-box span.label {
+            font-size: 9px;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            display: block;
+        }
+        #counter-box span.value {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #f472b6;
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: rgba(24, 24, 27, 0.5);
+            padding: 8px;
+            border-bottom: 1px solid #27272a;
+            position: sticky;
+            top: 65px;
+            z-index: 40;
+            backdrop-filter: blur(8px);
+        }
+        .month-btn {
+            background: transparent;
+            border: none;
+            color: #a1a1aa;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .month-btn.active {
+            color: #f472b6;
+            background-color: #27272a;
+        }
+        main {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        .month-header {
+            text-align: center;
+            margin: 16px 0;
+        }
+        .month-header h2 {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #f4f4f5;
+        }
+        .month-header p {
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            font-style: italic;
+            margin-top: 4px;
+        }
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #71717a;
+            margin-bottom: 8px;
+        }
+        #calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+        .day-cell {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid #18181b;
+            background-color: #18181b;
+            color: #ffffff;
+        }
+        .day-cell.past {
+            background-color: rgba(24, 24, 27, 0.7);
+            color: #52525b;
+        }
+        .day-cell.today {
+            background: linear-gradient(135deg, #db2777, #9333ea);
+            color: #ffffff;
+            border-color: #f472b6;
+            box-shadow: 0 4px 12px rgba(219, 39, 119, 0.4);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .day-cell.special-evelyn {
+            background: linear-gradient(135deg, #db2777, #9333ea);
+            color: #ffffff;
+            border: 2px solid #facc15;
+            animation: pulse 2s infinite;
+        }
+        .badge {
+            position: absolute;
+            bottom: 3px;
+            font-size: 8px;
+            font-weight: normal;
+        }
+        .badge-nosso { color: #f472b6; }
+        .badge-evelyn { color: #facc15; font-weight: bold; }
+        .badge-holiday { color: #f87171; }
+
+        .rules-box {
+            margin-top: 24px;
+            background-color: rgba(24, 24, 27, 0.6);
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.75rem;
+            color: #d4d4d8;
+        }
+        .rules-box h3 {
+            color: #f472b6;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .rules-box ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .rules-box strong {
+            color: #ffffff;
+        }
+        footer {
+            text-align: center;
+            font-size: 9px;
+            color: #52525b;
+            margin-top: 32px;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+        .heart {
+            position: fixed;
+            top: -10vh;
+            font-size: 24px;
+            user-select: none;
+            pointer-events: none;
+            z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>📅 CALENDÁRIO DO FAEL</h1>
+            <p class="subtitle-top">Setembro a Dezembro de 2026</p>
+        </div>
+        <div id="counter-box" onclick="triggerHearts()">
+            <span class="label">Juntos há</span>
+            <span id="days-counter" class="value">0 dias</span>
+        </div>
+    </header>
+
+    <nav>
+        <button onclick="changeMonth(9)" id="btn-9" class="month-btn active">Set</button>
+        <button onclick="changeMonth(10)" id="btn-10" class="month-btn">Out</button>
+        <button onclick="changeMonth(11)" id="btn-11" class="month-btn">Nov</button>
+        <button onclick="changeMonth(12)" id="btn-12" class="month-btn">Dez</button>
+    </nav>
+
+    <main>
+        <div class="month-header">
+            <h2 id="month-title">Setembro 2026</h2>
+            <p id="month-subtitle">"Nosso dia todo 15!"</p>
+        </div>
+
+        <div class="weekdays">
+            <div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SÁB</div>
+        </div>
+
+        <div id="calendar-grid"></div>
+
+        <div class="rules-box">
+            <h3>💡 Roteiro & Regras do Fael:</h3>
+            <ul>
+                <li>🟢 <strong>Segunda-feira:</strong> Dia da preguiça</li>
+                <li>🟡 <strong>Terça-feira:</strong> Ressaca da preguiça (Bota merda)</li>
+                <li>🔵 <strong>Quarta-feira:</strong> Dia normal / foco</li>
+                <li>🟣 <strong>Quinta-feira:</strong> Quinta-feira feliz</li>
+                <li>🍾 <strong>Sexta-feira:</strong> Melhor dia de todos, papo de estourar champagne</li>
+                <li>🛌 <strong>Sábado e Domingo:</strong> Dia internacional de fazer p*rra nenhuma</li>
+                <li>❤️ <strong>Todo dia 15:</strong> Nosso dia!</li>
+                <li>👑 <strong>23 de Novembro:</strong> Aniversário da Evelyn (O dia mais importante do mundo!)</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer>
+        Feito especialmente para a Evelyn ❤️ <span style="display:none;">Te amo muito, Fael & Evelyn pra sempre</span>
+    </footer>
+
+    <script>
+        function updateCounter() {
+            const startDate = new Date(2026, 2, 15); // 15 de Março de 2026
+            const today = new Date();
+            const diffTime = today - startDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById('days-counter').innerText = (diffDays > 0 ? diffDays : 0) + ' dias';
+        }
+        updateCounter();
+
+        const monthsData = {
+            9: { name: "Setembro 2026", days: 30, startDay: 2, subtitle: "Setembro: Nossa história continua" },
+            10: { name: "Outubro 2026", days: 31, startDay: 4, subtitle: "Outubro: Cada dia mais unidos" },
+            11: { name: "Novembro 2026", days: 30, startDay: 0, subtitle: "Novembro: O mês da nossa rainha Evelyn!" },
+            12: { name: "Dezembro 2026", days: 31, startDay: 2, subtitle: "Dezembro: Natal, Ano Novo e nós!" }
+        };
+
+        function changeMonth(monthNum) {
+            document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + monthNum).classList.add('active');
+            renderCalendar(monthNum);
+        }
+
+        function renderCalendar(monthNum) {
+            const data = monthsData[monthNum];
+            document.getElementById('month-title').innerText = data.name;
+            document.getElementById('month-subtitle').innerText = `"${data.subtitle}"`;
+
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const realToday = new Date();
+            const currentYearReal = realToday.getFullYear();
+            const currentMonthReal = realToday.getMonth() + 1;
+            const currentDayReal = realToday.getDate();
+
+            for (let i = 0; i < data.startDay; i++) {
+                const empty = document.createElement('div');
+                grid.appendChild(empty);
+            }
+
+            for (let day = 1; day <= data.days; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = "day-cell";
+
+                const isToday = (currentYearReal === 2026 && currentMonthReal === monthNum && currentDayReal === day);
+                let isPast = false;
+                if (currentYearReal > 2026 || (currentYearReal === 2026 && currentMonthReal > monthNum) || (currentYearReal === 2026 && currentMonthReal === monthNum && currentDayReal > day)) {
+                    isPast = true;
+                }
+
+                if (isToday) {
+                    dayEl.className += " today";
+                } else if (isPast) {
+                    dayEl.className += " past";
+                }
+
+                let badgeHtml = "";
+                if (day === 15) {
+                    badgeHtml = '<span class="badge badge-nosso">❤️ Nosso</span>';
+                }
+
+                if (monthNum === 11 && day === 23) {
+                    dayEl.className = "day-cell special-evelyn";
+                    badgeHtml = '<span class="badge badge-evelyn">👑 Evelyn</span>';
+                    dayEl.onclick = () => { triggerHearts(); alert("💖 23 de Novembro: O dia mais importante do mundo! Aniversário da Evelyn! Te amo!"); };
+                } else if (monthNum === 12 && day === 25) {
+                    badgeHtml = '<span class="badge badge-holiday">🎄 Natal</span>';
+                } else if (monthNum === 12 && day === 31) {
+                    badgeHtml = '<span class="badge badge-holiday">🎆 Ano Novo</span>';
+                }
+
+                dayEl.innerHTML = `<span>${day}</span>${badgeHtml}`;
+                grid.appendChild(dayEl);
+            }
+        }
+
+        function triggerHearts() {
+            for (let i = 0; i < 35; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                const symbols = ['❤️', '💖', '🌹', '✨', ' Evelyn '];
+                heart.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                heart.style.fontSize = (Math.random() * 20 + 16) + 'px';
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 3500);
+            }
+        }
+
+        renderCalendar(9);
+    </script>
+</body>
+</html>
